@@ -55,4 +55,65 @@ projectDialog?.addEventListener('click', (event) => {
   if (event.target === projectDialog) projectDialog.close();
 });
 
+const leadForm = document.querySelector('#lead-form');
+const formStatus = document.querySelector('#form-status');
+const formStarted = document.querySelector('#form-started');
+const formSubmit = leadForm?.querySelector('.form-submit');
+let formStartedAt = Date.now();
+
+if (formStarted) formStarted.value = new Date(formStartedAt).toISOString();
+
+leadForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  formStatus.className = 'form-status';
+  formStatus.textContent = '';
+
+  if (!leadForm.checkValidity()) {
+    leadForm.reportValidity();
+    formStatus.classList.add('error');
+    formStatus.textContent = 'Please complete the required fields before sending.';
+    return;
+  }
+
+  const honeypot = leadForm.querySelector('[name="_gotcha"]');
+  if (honeypot?.value) {
+    leadForm.reset();
+    formStatus.classList.add('success');
+    formStatus.textContent = 'Thank you. Your enquiry has been received.';
+    return;
+  }
+
+  if (Date.now() - formStartedAt < 3000) {
+    formStatus.classList.add('error');
+    formStatus.textContent = 'Please review your details, then send the enquiry again.';
+    return;
+  }
+
+  const defaultLabel = formSubmit.textContent;
+  formSubmit.disabled = true;
+  formSubmit.textContent = 'Sending...';
+
+  try {
+    const response = await fetch(leadForm.action, {
+      method: 'POST',
+      body: new FormData(leadForm),
+      headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) throw new Error('Submission failed');
+
+    leadForm.reset();
+    formStartedAt = Date.now();
+    formStarted.value = new Date(formStartedAt).toISOString();
+    formStatus.classList.add('success');
+    formStatus.textContent = 'Thank you. Your enquiry has been sent successfully. I will respond within one business day.';
+  } catch (error) {
+    formStatus.classList.add('error');
+    formStatus.textContent = 'The form could not be sent. Please use email or WhatsApp above and try again later.';
+  } finally {
+    formSubmit.disabled = false;
+    formSubmit.textContent = defaultLabel;
+  }
+});
+
 document.querySelector('#year').textContent = new Date().getFullYear();

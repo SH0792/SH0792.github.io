@@ -2,6 +2,8 @@
 
 Static personal portfolio website prepared for GitHub Pages.
 
+The contact form submits through Formspree using form endpoint `mzezkwpr`. Spam controls include Formspree filtering, a honeypot field, native field validation, a minimum completion delay and duplicate submission protection.
+
 ## Publish with GitHub Pages
 
 1. Upload every file and the `assets` folder to the repository root.
